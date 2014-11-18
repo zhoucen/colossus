@@ -77,10 +77,18 @@ layout: intro
         <h3>Write More than Just Services</h3>
         <p>
           While Colossus has primarily been built with microservices in mind,
-          at the heart is a simple wrapper on NIO that is fully accessable for
-          you to write your own custom servers and clients.  Furthermore,
-          Colossus Tasks let you write arbitrary code inside event loops when
+          at the heart is a simple wrapper on NIO that is fully accessible for
+          custom server and client implementations.  
+          Furthermore, Colossus Tasks let you write arbitrary code inside event loops when
           you need to do I/O outside the context of a server.        
+        </p>
+      </div>
+      <br class="clear" />
+      <div class="feature">
+        <h3>Out of the Box Protocol Support</h3>
+        <p>
+          Colossus has built in support for the HTTP, Redis and Memcached protocols.  This interface is open for 
+          the addition of existing or custom protocols.
         </p>
       </div>
     </div>
@@ -111,7 +119,7 @@ layout: intro
         in several production systems throughout Tumblr's infrastructure.
       </p>
       <p>
-        <strong>We need your help!.</strong>  Colossus is still in the early
+        <strong>We need your help!</strong>  Colossus is still in the early
         stages of development and while we've met many of the goals we set out
         to achieve, there's still much to be done.  Features need to be
         implemented, bugs needs to be fixed, optimizations need to be
