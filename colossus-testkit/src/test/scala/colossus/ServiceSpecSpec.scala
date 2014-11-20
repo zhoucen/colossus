@@ -24,7 +24,7 @@ object TestService {
 class ServiceSpecSpec extends ServiceSpec[Redis] {
 
   def service = TestService()
-  val requestTimeout = 500.milliseconds
+  val requestTimeout = 1000.milliseconds
 
   "test service" must {
     "expect a response" in {
