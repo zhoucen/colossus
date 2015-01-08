@@ -20,7 +20,7 @@ class OutputControllerSpec extends ColossusSpec {
       val data = ByteString("Hello World!")
       val message = TestOutput(Source.one(DataBuffer(data)))
       controller.testPush(message){_ must equal (OutputResult.Success)}
-      endpoint.writeCalls(0) must equal(data)
+      endpoint.expectWrite(data)
 
     }
   }
