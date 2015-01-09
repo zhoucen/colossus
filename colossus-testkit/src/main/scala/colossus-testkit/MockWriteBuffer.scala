@@ -10,7 +10,7 @@ import org.scalatest._
 /**
  * if a handler is passed, the buffer will call the handler's readyForData, and it will call it's own handleWrite if interestRW is true
  */
-class MockWriteBuffer(maxWriteSize: Int, handler: Option[ConnectionHandler] = None) extends WriteBuffer {
+class MockWriteBuffer(val maxWriteSize: Int, handler: Option[ConnectionHandler] = None) extends WriteBuffer {
   var bytesAvailable = maxWriteSize
   private var writeCalls = collection.mutable.Queue[ByteString]()
   var connection_status: ConnectionStatus = ConnectionStatus.Connected
