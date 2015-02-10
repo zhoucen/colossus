@@ -51,14 +51,14 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
       sys.eventStream.publish(MetricClock.Tick(m1.id, 1))
       Thread.sleep(150)
       sys.eventStream.publish(MetricClock.Tick(m1.id, 2))
-      Thread.sleep(50)
+      Thread.sleep(150)
       m1.snapshot() must equal(Map(Root / "foo" -> Map(TagMap.Empty -> 3)))
       m2.snapshot() must equal(Map())
 
       sys.eventStream.publish(MetricClock.Tick(m2.id, 1))
       Thread.sleep(150)
       sys.eventStream.publish(MetricClock.Tick(m2.id, 2))
-      Thread.sleep(50)
+      Thread.sleep(150)
 
       m2.snapshot() must equal(Map(Root / "bar" -> Map(TagMap.Empty -> 2)))
       sys.shutdown()
