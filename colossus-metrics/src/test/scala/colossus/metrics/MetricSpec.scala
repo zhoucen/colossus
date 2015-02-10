@@ -49,18 +49,35 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
       //first tick triggers collectors to send metrics, second tick tells
       //MetricDatabase to publish the snapshot from the previous tick
       sys.eventStream.publish(MetricClock.Tick(m1.id, 1))
-      Thread.sleep(250)
+      Thread.sleep(50)
       sys.eventStream.publish(MetricClock.Tick(m1.id, 2))
-      Thread.sleep(250)
-      m1.snapshot() must equal(Map(Root / "foo" -> Map(TagMap.Empty -> 3)))
+      Thread.sleep(50)
+
+      def wait(num: Int)(f: => Boolean) {
+        if (!f) {
+          if (num == 0) {
+            fail(s"Check failed after $num tries")
+          } else {
+            Thread.sleep(50)
+            wait(num - 1)(f)
+          }
+        }
+      }
+        
+      
+      wait(3){     
+        m1.snapshot() == (Map(Root / "foo" -> Map(TagMap.Empty -> 3)))
+      }
       m2.snapshot() must equal(Map())
 
       sys.eventStream.publish(MetricClock.Tick(m2.id, 1))
-      Thread.sleep(250)
+      Thread.sleep(50)
       sys.eventStream.publish(MetricClock.Tick(m2.id, 2))
-      Thread.sleep(250)
+      Thread.sleep(50)
 
-      m2.snapshot() must equal(Map(Root / "bar" -> Map(TagMap.Empty -> 2)))
+      wait(3){
+        m2.snapshot() == Map(Root / "bar" -> Map(TagMap.Empty -> 2))
+      }
       sys.shutdown()
       
     }
