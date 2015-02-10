@@ -60,7 +60,7 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
               fail(s"Check failed after $num tries")
             } else {
               Thread.sleep(50)
-              loop(n - 1)(f)
+              loop(n - 1)
             }
           }
         }
