@@ -49,7 +49,7 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
       //first tick triggers collectors to send metrics, second tick tells
       //MetricDatabase to publish the snapshot from the previous tick
       sys.eventStream.publish(MetricClock.Tick(m1.id, 1))
-      Thread.sleep(50)
+      Thread.sleep(500)
       sys.eventStream.publish(MetricClock.Tick(m1.id, 2))
       Thread.sleep(50)
 
@@ -74,7 +74,7 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
       m2.snapshot() must equal(Map())
 
       sys.eventStream.publish(MetricClock.Tick(m2.id, 1))
-      Thread.sleep(50)
+      Thread.sleep(500)
       sys.eventStream.publish(MetricClock.Tick(m2.id, 2))
       Thread.sleep(50)
 
