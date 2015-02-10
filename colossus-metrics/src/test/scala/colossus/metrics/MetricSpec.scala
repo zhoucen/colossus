@@ -54,18 +54,21 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
       Thread.sleep(50)
 
       def wait(num: Int)(f: => Boolean) {
-        if (!f) {
-          if (num == 0) {
-            fail(s"Check failed after $num tries")
-          } else {
-            Thread.sleep(50)
-            wait(num - 1)(f)
+        def loop(n: Int) {
+          if (!f) {
+            if (n == 0) {
+              fail(s"Check failed after $num tries")
+            } else {
+              Thread.sleep(50)
+              wait(n - 1)(f)
+            }
           }
         }
+        loop(num)
       }
         
       
-      wait(3){     
+      wait(50){     
         m1.snapshot() == (Map(Root / "foo" -> Map(TagMap.Empty -> 3)))
       }
       m2.snapshot() must equal(Map())
@@ -75,7 +78,7 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
       sys.eventStream.publish(MetricClock.Tick(m2.id, 2))
       Thread.sleep(50)
 
-      wait(3){
+      wait(50){
         m2.snapshot() == Map(Root / "bar" -> Map(TagMap.Empty -> 2))
       }
       sys.shutdown()
