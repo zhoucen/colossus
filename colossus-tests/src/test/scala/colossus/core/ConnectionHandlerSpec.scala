@@ -83,7 +83,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
       withIOSystem{ implicit io =>
         //obvious this will fail to connect, but we don't care here
         io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), _ => new MyHandler(probe.ref, true, false))
-        probe.expectMsg(100.milliseconds, "BOUND")
+        probe.expectMsg(500.milliseconds, "BOUND")
       }
     }
 
@@ -103,7 +103,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
       withIOSystem{ implicit io =>
         withServer(Service.become[Raw]("test", TEST_PORT){case x => x}) {
           io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), _ => new MyHandler)
-          probe.expectMsg(250.milliseconds, "UNBOUND")
+          probe.expectMsg(500.milliseconds, "UNBOUND")
         }
       }
     }
@@ -130,8 +130,8 @@ class ConnectionHandlerSpec extends ColossusSpec {
         io ! IOCommand.BindAndConnectWorkerItem(
           new InetSocketAddress("localhost", TEST_PORT), _ => new MyHandler(probe.ref, true, true)
         )
-        probe.expectMsg(250.milliseconds, "BOUND")
-        probe.expectMsg(250.milliseconds, "UNBOUND")
+        probe.expectMsg(500.milliseconds, "BOUND")
+        probe.expectMsg(500.milliseconds, "UNBOUND")
       }
     }
 
@@ -148,9 +148,9 @@ class ConnectionHandlerSpec extends ColossusSpec {
       withIOSystem{ implicit io =>
         withServer(Service.become[Raw]("test", TEST_PORT){case x => x}) {
           io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), _ => new MyHandler)
-          probe.expectNoMsg(200.milliseconds)
+          probe.expectNoMsg(500.milliseconds)
         }
-        probe.expectNoMsg(200.milliseconds)
+        probe.expectNoMsg(500.milliseconds)
       }
     }
 
@@ -166,7 +166,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
       }
       withIOSystem{ implicit io =>
         io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), _ => new MyHandler)
-        probe.expectNoMsg(200.milliseconds)
+        probe.expectNoMsg(500.milliseconds)
       }
 
     }
