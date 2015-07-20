@@ -176,15 +176,15 @@ sealed trait MemcacheWriteCommand extends MemcacheCommand{
 
     /*write commands are of the format
     We don't support the [noreply] semantics at this time
-    <COMMAND> <KEY> <FLAGS> <EXPTIME> <BYTECOUNT> \r\n<data>\r\n
+    <COMMAND> <KEY> <FLAGS> <EXPTIME> <BYTECOUNT>\r\n<data>\r\n
 
     padding accounts for spaces, \r\n's, bytecount and exptime:
-       5 spaces
+       4 spaces
     +  4 (2 \r\n's)
      ----
-       9 */
+       8 */
 
-    val padding = 9
+    val padding = 8
 
     val flagsStr = ByteString(flags.toString)
     val ttlStr = ByteString(ttl.toString)
