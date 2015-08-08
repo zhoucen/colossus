@@ -118,9 +118,18 @@ trait WriteEndpoint extends ConnectionInfo {
 
 }
 
-private[core] abstract class Connection(val id: Long, val key: SelectionKey, _channel: SocketChannel, val handler: ConnectionHandler)(implicit val sender: ActorRef)
+private[core] abstract class Connection(
+  val id: Long, 
+  val key: SelectionKey, 
+  _channel: SocketChannel, 
+  val handler: ConnectionHandler,
+  writeSignaler: Connection => Unit
+)(implicit val sender: ActorRef)
   extends LiveWriteBuffer with WriteEndpoint {
 
+  def signalWrite() {
+    writeSignaler(this)
+  }
 
   val startTime = System.currentTimeMillis
 
@@ -228,8 +237,8 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
 
 }
 
-private[core] class ServerConnection(id: Long, key: SelectionKey, channel: SocketChannel, handler: ServerConnectionHandler, val server: ServerRef)(implicit sender: ActorRef)
-  extends Connection(id, key, channel, handler)(sender) {
+private[core] class ServerConnection(id: Long, key: SelectionKey, channel: SocketChannel, handler: ServerConnectionHandler, val server: ServerRef, signaler: Connection => Unit)(implicit sender: ActorRef)
+  extends Connection(id, key, channel, handler, signaler)(sender) {
 
   def domain: String = server.name.toString
   val outgoing: Boolean = false
@@ -247,8 +256,8 @@ private[core] class ServerConnection(id: Long, key: SelectionKey, channel: Socke
 
 }
 
-private[core] class ClientConnection(id: Long, key: SelectionKey, channel: SocketChannel, handler: ClientConnectionHandler)(implicit sender: ActorRef)
-  extends Connection(id, key, channel, handler)(sender) {
+private[core] class ClientConnection(id: Long, key: SelectionKey, channel: SocketChannel, handler: ClientConnectionHandler, signaler: Connection => Unit)(implicit sender: ActorRef)
+  extends Connection(id, key, channel, handler, signaler)(sender) {
 
   def domain: String = "client" //TODO: fix this
   val outgoing: Boolean = true

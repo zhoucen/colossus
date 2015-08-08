@@ -154,6 +154,12 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
   //collection of all the active connections
   val connections = collection.mutable.Map[Long, Connection]()
 
+  val writeSignals = new java.util.LinkedList[Connection]()
+  val signaler = (connection: Connection) => {
+    writeSignals.add(connection) : Unit
+  }
+
+
 
   //mapping of registered servers to their delegators
   val delegators = collection.mutable.Map[ActorRef, Delegator]()
@@ -277,7 +283,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
     val channel = SocketChannel.open()
     channel.configureBlocking(false)
     val key = channel.register(selector, SelectionKey.OP_CONNECT)
-    val connection = new ClientConnection(newId(), key, channel, handler)
+    val connection = new ClientConnection(newId(), key, channel, handler, signaler)
     key.attach(connection)
     connections(connection.id) = connection
     numConnections.increment(workerIdTag)
@@ -347,7 +353,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
    */
   def registerConnection(sc: SocketChannel, server: ServerRef, handler: ServerConnectionHandler) {
       val newKey: SelectionKey = sc.register( selector, SelectionKey.OP_READ )
-      val connection = new ServerConnection(newId(), newKey, sc, handler, server)(self)
+      val connection = new ServerConnection(newId(), newKey, sc, handler, server, signaler)(self)
       newKey.attach(connection)
       connections(connection.id) = connection
       numConnections.increment(workerIdTag)
@@ -496,6 +502,11 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
       }
       it.remove()
 
+    }
+
+    //if (writeSignals.size > 0) println(writeSignals.size)
+    while (writeSignals.size > 0) {
+      writeSignals.remove.handleWrite()
     }
   }
 

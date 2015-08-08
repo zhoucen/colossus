@@ -77,6 +77,9 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
   //mostly for DI for testing
   def channelWrite(data: DataBuffer): Int
 
+  //the buffer calls this when it needs to write something
+  def signalWrite()
+
   private var _bytesSent = 0L
   def bytesSent = _bytesSent
 
@@ -95,6 +98,9 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
   //buffer to the channel.  Normally this is only true outside of handleWrite
   //when we fail to write the whole internal buffer to the socket
   private var drainingInternal = false
+
+  
+  private var signaled = false
 
   //this is only used when the connection is about to disconnect.  We allow the
   //write buffer to drain, then perform the actual disconnect.  Once this is
@@ -134,7 +140,10 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
 
   private def writeRaw(raw: DataBuffer): WriteStatus = {
     try {
-      enableWriteReady()
+      if (!signaled) {
+        signalWrite()
+        signaled = true
+      }
       _lastTimeDataWritten = System.currentTimeMillis
       copyInternal(raw.data)
       if (raw.hasUnreadData) {
@@ -173,6 +182,7 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
    * OP_WRITE key interest.
    */
   def handleWrite() {
+    signaled = false
     if (!drainingInternal) {
       drainingInternal = true
       internal.data.flip //prepare for reading
@@ -186,6 +196,8 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
       internal.data.clear()
       disableWriteReady()
       drainingInternal = false
+    } else {
+      enableWriteReady()
     }
 
     partialBuffer.map{raw =>
