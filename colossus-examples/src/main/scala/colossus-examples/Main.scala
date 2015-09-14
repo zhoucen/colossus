@@ -38,4 +38,7 @@ object Main extends App {
 
   val benchmarkServer = BenchmarkService.start(9007)
 
+  // websocket server
+  val websocketServer = WebSocketExample.start(9009)
+
 }

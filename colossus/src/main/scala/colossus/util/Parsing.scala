@@ -28,7 +28,7 @@ object DataSize {
  * cases databuffers are fairly small (128Kb right now for buffers coming out
  * of the event loop), and since the primary purpose for this is to prevent OOM
  * exceptions due to very large requests, the lack of precision isn't a huge
- * issue. 
+ * issue.
 */
 class ParserSizeTracker(maxSize: Option[DataSize]) {
 
@@ -139,7 +139,7 @@ trait IntegerParser{self: UnsizedParseBuffer =>
  *
  * === Overview ===
  *
- * A `Parser[T]` is an object that consumes a stream of bytes to produce a result of type `T`.  
+ * A `Parser[T]` is an object that consumes a stream of bytes to produce a result of type `T`.
  *
  * A Combinator is a "higher-order" parser that takes one or more parsers to produce a new parser
  *
@@ -196,7 +196,7 @@ object Combinators {
               parse(data) //need to give b a chance
             } else {
               None
-            }                
+            }
           } else {
             doneb = b.parse(data)
             if (doneb.isDefined) {
@@ -225,6 +225,33 @@ object Combinators {
     }
     def andThen[B](b: Parser[B]): Parser[~[T,B]] = this.~(b)
 
+
+    // combines two parsers but only use the first once
+    def onceAndThen[B >: T](b: Parser[B]): Parser[B] = {
+      val a = this
+      new Parser[B] {
+        var donea: Option[T] = None
+        var doneb: Option[B] = None
+        def parse(data: DataBuffer): Option[B] = {
+          if (donea.isEmpty) {
+            donea = a.parse(data)
+            if (donea.isDefined) donea
+            else None
+          } else {
+            doneb = b.parse(data)
+            if (doneb.isDefined) {
+              val res = doneb
+              doneb = None
+              res
+            } else {
+              None
+            }
+          }
+        }
+      }
+    }
+
+
     //combines two parsers but discards the result from the second.  Useful for
     //skipping over data
     def <~[B](b: Parser[B]): Parser[T] = this ~ b >> {_.a}
@@ -235,7 +262,7 @@ object Combinators {
 
 
 
-    
+
     def >>[B](f: T => B): Parser[B] = {
       val orig = this
       new Parser[B]{
@@ -266,7 +293,7 @@ object Combinators {
       }
     }
     def flatMap[B](f: T => Parser[B]): Parser[B] = |>(f)
-        
+
 
   }
 
@@ -286,7 +313,7 @@ object Combinators {
     def parse(data: DataBuffer) = {
       while(data.hasNext && index < lit.size) {
         if (data.next != arr(index)) {
-          throw new ParseException(s"Parsed byte string does not match expected literal")    
+          throw new ParseException(s"Parsed byte string does not match expected literal")
         }
         index += 1
       }
@@ -298,7 +325,7 @@ object Combinators {
       }
     }
   }
-  
+
   /**
    * Creates a parser that wraps another parser and will throw an exception if
    * more than `size` data is required to parse a single object.  See the
@@ -325,7 +352,7 @@ object Combinators {
    * read a fixed number bytes, prefixed by a length
    */
   def bytes(num: Parser[Long]): Parser[ByteString] = new Parser[ByteString] {
-    var buf = new SizedParseBuffer(0) //first one never used 
+    var buf = new SizedParseBuffer(0) //first one never used
     var size: Option[Long] = None
     def parse(data: DataBuffer): Option[ByteString] = {
       if (size.isEmpty) {
@@ -401,7 +428,7 @@ object Combinators {
       }
     }
   }
-        
+
 
 
   /** Parse a string until a designated byte is encountered
@@ -503,10 +530,10 @@ object Combinators {
       }
     }
   }
-      
+
 
   /** Parse a pattern multiple times based on a numeric prefix
-   * 
+   *
    * This is useful for any situation where the repeated pattern is prefixed by
    * the number of repetitions, for example `num:[obj1][obj2][obj3]`.  In
    * situations where the pattern doesn't immediately follow the number, you'll
@@ -529,7 +556,7 @@ object Combinators {
         } else {
           None
         }
-      } else if (parsedTimes.get > 0) {          
+      } else if (parsedTimes.get > 0) {
         parser.parse(data).foreach{res =>
           build = build :+ res
         }
@@ -623,7 +650,7 @@ object Combinators {
    /*
     NOTE - this is commented out because right now in all cases we need to know
     how much data was peeked, so instead we're using peek on the databuffer and
-    regular parsers inside of the peek, 
+    regular parsers inside of the peek,
   def peek[T](p: Parser[T]): Parser[T] = new Parser[(T] {
     def parse(data: DataBuffer): Option[T] = data.peek{buf => p.parse(data)}
   }
@@ -675,7 +702,7 @@ object Combinators {
    */
   def repeatUntilEOS[T](parser: Parser[T]): Parser[Seq[T]] = new Parser[Seq[T]] {
     var build = collection.mutable.ArrayBuffer[T]()
-    def parse(data: DataBuffer) = { 
+    def parse(data: DataBuffer) = {
       while (data.hasNext) {
         parser.parse(data).foreach{t =>
           build += t
@@ -696,4 +723,4 @@ object Combinators {
   case class ~[+A,+B](a: A, b: B)
 
 }
-    
+
