@@ -1,25 +1,42 @@
 package colossus
-package protocol
+package protocols
 package websocket
+
+import java.nio.ByteOrder
 
 import akka.util.{ByteStringBuilder, ByteString}
 import colossus.core.DataBuffer
-import colossus.protocols.http.{HttpRequest, HttpResponse}
-import java.nio.ByteOrder
 
-sealed trait WebSocket {
+
+sealed trait BaseWebSocketMessage {
   def bytes(): DataBuffer
 }
 
-case class WebSocketRequest(request: HttpRequest) extends WebSocket {
-  def bytes() = DataBuffer(request.bytes)
+case class HandshakeRequest(url:String, headers: List[(String,String)]) extends BaseWebSocketMessage{
+  def bytes() = DataBuffer({
+    val reqString = ByteString(s"GET $url HTTP/1.1\r\n")
+    if (headers.size > 0) {
+      val headerString = ByteString(headers.map{case(k,v) => k + ": " + v}.mkString("\r\n"))
+      reqString ++ headerString ++ ByteString("\r\n\r\n")
+    } else {
+      reqString ++ ByteString("\r\n")
+    }
+  })
 }
 
-case class WebSocketResponse(response: HttpResponse) extends WebSocket {
-  def bytes() = response.encode()
+case class HandshakeResponse(headers: List[(String,String)]) extends BaseWebSocketMessage{
+  def bytes() = DataBuffer({
+    val reqString = ByteString(s"HTTP/1.1 101 Switching Protocols\r\n")
+    if (headers.size > 0) {
+      val headerString = ByteString(headers.map{case(k,v) => k + ": " + v}.mkString("\r\n"))
+      reqString ++ headerString ++ ByteString("\r\n\r\n")
+    } else {
+      reqString ++ ByteString("\r\n")
+    }
+  })
 }
 
-sealed trait WebSocketBaseFrame extends WebSocket {
+sealed trait WebSocketBaseFrame extends BaseWebSocketMessage {
   implicit val byteOrder = ByteOrder.BIG_ENDIAN
   def onFrame(opcode: Byte, data: String) = {
     val finalFrame: Byte =  0x80.toByte

@@ -1,19 +1,18 @@
 package colossus
 package protocols.websocket
 
-import protocol.websocket.WebSocket
 import service.Codec.ServerCodec
 import service.DecodedResult
 import core._
 import protocols.websocket.WebSocketParser._
 
 
-class WebSocketServerCodec extends ServerCodec[WebSocket, WebSocket] {
-  private var parser = WebSocketRequestParser() onceAndThen WebSocketFrameParser()
-  def decode(data: DataBuffer): Option[DecodedResult[WebSocket]] = parser.parse(data).map{DecodedResult.Static(_)}
-  def encode(response: WebSocket): DataBuffer = response.bytes()
+class WebSocketServerCodec extends ServerCodec[BaseWebSocketMessage, BaseWebSocketMessage] {
+  private var parser = WebSocketFrameParser() onceAndThen WebSocketFrameParser()
+  def decode(data: DataBuffer): Option[DecodedResult[BaseWebSocketMessage]] = DecodedResult.static(parser.parse(data))
+  def encode(response: Websocket#Output): DataBuffer = response.bytes()
   def reset() = {
-    parser =  WebSocketRequestParser() onceAndThen WebSocketFrameParser()
+    parser =  WebSocketFrameParser() onceAndThen WebSocketFrameParser()
   }
 }
 
