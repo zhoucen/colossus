@@ -8,11 +8,11 @@ import protocols.websocket.WebSocketParser._
 
 
 class WebSocketServerCodec extends ServerCodec[BaseWebSocketMessage, BaseWebSocketMessage] {
-  private var parser = WebSocketFrameParser() onceAndThen WebSocketFrameParser()
+  private var parser = HandshakeRequestParser() onceAndThen WebSocketFrameParser()
   def decode(data: DataBuffer): Option[DecodedResult[BaseWebSocketMessage]] = DecodedResult.static(parser.parse(data))
   def encode(response: Websocket#Output): DataBuffer = response.bytes()
   def reset() = {
-    parser =  WebSocketFrameParser() onceAndThen WebSocketFrameParser()
+    parser =  HandshakeRequestParser() onceAndThen WebSocketFrameParser()
   }
 }
 
